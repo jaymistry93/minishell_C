@@ -1,0 +1,201 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <assert.h>
+#include <string.h>
+#include <signal.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <error.h>
+
+enum {
+  MaxLigne = 1024,              // longueur max d'une ligne de commandes
+  MaxMot = MaxLigne / 2,        // nbre max de mot dans la ligne
+  MaxDirs = 100,		// nbre max de repertoire dans PATH
+  MaxPathLength = 512,		// longueur max d'un nom de fichier
+};
+
+void decouper(char *, char * , char **, int); // dans cn-decouper.c
+  /* int i;
+
+  if (mot[0] == 0)
+    return 0;
+
+  for(mot[0] = strtok(ligne, separ), i = 1; mot[i - 1] != 0 && i < maxmot - 1; i++)
+    mot[i] = strtok(NULL, separ);
+  mot[i] = 0;
+
+# ifdef DEBUG
+  printf("liste des mots :\n");
+  for(j = 0; j < i; j++)
+    printf("\t'%s'\n", mot[j]);
+  printf("fin de la liste des mots\n");
+# endif
+}*/
+#define PROMPT "? "
+
+int trouver_libre(int *mot,int nbpro){
+  int i;
+  for(i=0;i<nbpro;i++){
+    if(mot[i] == 1){
+      return i;
+    }
+  }
+  return 0;
+}
+
+void decale(char *mot[],int i,int nb){
+  int j;
+  for(j=i;j<=nb-4;j+=2){
+    mot[j]=mot[j+2];	
+    mot[j+1]=mot[j+3];	       		
+  }
+  mot[nb-3]=NULL;
+  mot[nb-2]=NULL;
+}
+
+int main(int argc, char * argv[]){
+  char ligne[MaxLigne];
+  char pathname[MaxPathLength];
+  int nbpro=20;
+  char * mot[MaxMot];
+  char * dirs[MaxDirs];
+  int pids[nbpro];
+  int pid;
+  int i,n, tmp;
+  int nbmot;
+  int status;
+  int fw,df;
+  int sortie,entrer;
+  int test=0;
+  int proc = 1;
+  char * cmd[MaxMot];
+  signal(SIGTSTP,SIG_IGN);
+  
+  /* Decouper UNE COPIE de PATH en repertoires */
+  decouper(strdup(getenv("PATH")), ":", dirs, MaxDirs);
+
+  for(i=0;i<nbpro;i++){
+    pids[i]=1;
+  }
+  
+  //rien();
+  /* Lire et traiter chaque ligne de commande */
+  for(printf(PROMPT); fgets(ligne, sizeof ligne, stdin) != 0; printf(PROMPT)){ 
+    nbmot=decouper(ligne, " \t\n", mot, MaxMot);   
+    for(i=0;i<nbpro;i++){
+      if(pids[i] != 1){
+	pid_t return_pid = waitpid(pids[i], &status, WNOHANG);
+	if (return_pid == pids[i]) {
+	  pids[i]=1;
+	}
+      }
+    }
+    
+    printf("nbmot: %d\n", nbmot);
+    if((strcmp(mot[0], "exit")) == 0){
+      break;
+      return 0;
+    }
+    
+    if (mot[0] == 0)            // ligne vide
+      continue;
+     // Commande spéciale qui doit être exécutée par le parent
+    if (strcmp(mot[0], "cd") == 0){
+      if (mot[1] == 0)
+	mot[1] = getenv("HOME");
+      else if (mot[2] != 0){
+	fprintf(stderr, "usage: cd [dir]\n");
+	continue;
+      }
+      if (chdir(mot[1]) < 0)
+	perror("cd");
+      continue;
+    }
+    /*  if((strcmp(mot[0],"cd")) == 0){
+      chdir(mot[1]);
+      continue;
+      }*/
+    
+    tmp = fork();	   
+    /*   n=trouver_libre(pids,nbpro);
+    pids[n]=tmp;
+    pid=tmp;*/
+    
+    // lancer le processus enfant
+    if (tmp < 0){
+      perror("fork");
+      continue;
+    }
+    
+    if(*mot[nbmot-2] == '&'){	
+      mot[nbmot-2]= NULL;
+      printf("%d   [%d]\n", pid);	
+      if(tmp != 0){	    
+	continue;	
+      }
+    }
+    else{
+      if (tmp != 0){   
+	while(wait(0) != tmp)
+	  ;
+	/*	for(i=0;i<nbpro;i++){
+	  if(pids[i] == tmp){
+	    pids[i]=1;
+	  }
+	  }*/
+	continue;
+      }
+       execvp(mot[0], mot);	// enfant : exécuter la commande
+				// si on arrive ici, c'est qu'il y a une erreur
+    perror(mot[0]);
+    exit(1);
+    }
+    // enfant : exec du programme    
+    for(i=0;i<nbmot-2;i++){
+      if(*mot[i] == '<'){			
+	entrer=i;
+	df=open(mot[entrer+1],O_RDONLY);
+      }
+      if(*mot[i] == '>'){
+	sortie=i;			
+	fw=open(mot[sortie+1], O_CREAT|O_WRONLY,0777);
+	test++;
+      }		
+    }
+    if(test != 0){						
+      for(i=0;i<nbmot-2;i++){
+	if(*mot[i] == '<'){
+	  decale(mot,i,nbmot);
+	  nbmot=nbmot -2;
+	  dup2(df,0);
+	  i--;
+	}
+	if(*mot[i] == '>'){
+	  decale(mot,i,nbmot);
+	  nbmot=nbmot -2;
+	  i--;
+	  dup2(fw,1);
+	}
+      }
+      close(fw);
+      close(df);		
+    }
+    char lol[255];
+    bzero(lol, sizeof(*lol));
+    //if(strcmp(mot[2], ";") == 0)
+    //  printf("Je suis un ;\n");
+    for(i = 0; dirs[i] != 0; i++){
+      snprintf(pathname, sizeof pathname, "%s/%s", dirs[i], mot[0]);
+      printf("test: %s - %s\n", pathname, *mot);
+      execv(pathname, mot);
+    }
+    // aucun exec n'a fonctionne  
+    fprintf(stderr, "%s: not found\n", mot[0]);
+    exit(1);
+  }
+  printf("Bye\n");
+  return 0;
+}

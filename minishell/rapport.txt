@@ -1,0 +1,20 @@
+Processus en arrière plan et commande cd:
+     
+	arriere-plan:
+	Pour cela , je verifie avec la commande strcmp() si le dernier mot entrer est un '&' , si c'est bien le cas je retire le "&" avant de  passer au processus enfant et je fait continue la boucle du for initial pour eviter d'attendre la fin du processus enfant et donc avoir directement la main.
+
+	commande cd:
+	je verifie avec la commande strcmp() si le premier mot entrer est "cd" , si c'est bien le cas j'utilise donc la fonction chdir() sur le mot entrer suivant le cd pour y acceder(on continue la boucle du for initial une fois cette action achever pour eviter qu'il y ait un fork inutile).
+
+Redirections d'entrées-sorties:
+
+	j'ai proceder de la maniere suivante :
+
+		-je parcour le tableau mot pour savoir si j'ai une redirection de sortie ">" ou d'entrer "<" dans les arguments passer en commande
+		-une fois cela fait j'efface du tableau mot le ">" ou "<" ainsi que l'argument qui le suit qui correspond donc au nom de la destination de la redirection ( ou de l'emplacement de l'entrer) 
+		-j'ouvre la detination de sortie ou l'entree avec open ( en mode O_RDONLY pour l'entrer c'est a dire l'ecture et O_CREAT|O_WRONLY,0777 pour la sortie c'est a dire ecriture , lui permettre de cree le fichier si celui ci n'existe pas et d'y avoir tous les droit.
+		-je decrement nbmot ( qui correspond a nombre de mot dans le tableau mot) de 2 car je vien d'effacer 2 mot du tableau.
+		-je change ensuite l'entree/sortie avec dup2() (0 si redirection d'entrer , 1 si redirection de sortie).
+		-j'ai ensuite cree une fonction decaler() qui va decaler tous les argument du tableau mot pour ne pas qu'il y ait des case contenant NULL en plein milieu de mon tableau mot suite a l'effacement des 2 case precedente
+		-je continue a parcourir le tableau mot pour voir si il n'y aurait pas d'autre redirection d'entrer ou de sortie ( si c'est le cas je repete les meme instruction pour chaque redirection trouver).
+

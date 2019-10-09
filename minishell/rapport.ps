@@ -1,0 +1,610 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 18 36 577 806
+%%Title: Enscript Output
+%%Creator: GNU Enscript 1.6.5.90
+%%CreationDate: Sun Jan  8 17:28:48 2017
+%%Orientation: Portrait
+%%Pages: (atend)
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6.5 90
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6.5 90
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 10 10 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [595 842] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-simple 1.6.5 90
+
+/do_header {	% print default simple header
+  gsave
+    d_header_x d_header_y HFpt_h 3 div add translate
+
+    HF setfont
+    user_header_p {
+      5 0 moveto user_header_left_str show
+
+      d_header_w user_header_center_str stringwidth pop sub 2 div
+      0 moveto user_header_center_str show
+
+      d_header_w user_header_right_str stringwidth pop sub 5 sub
+      0 moveto user_header_right_str show
+    } {
+      5 0 moveto fname show
+      45 0 rmoveto fmodstr show
+      45 0 rmoveto pagenumstr show
+    } ifelse
+
+  grestore
+} def
+%%EndResource
+/d_page_w 559 def
+/d_page_h 770 def
+/d_header_x 0 def
+/d_header_y 755 def
+/d_header_w 559 def
+/d_header_h 15 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 559 def
+/d_footer_h 0 def
+/d_output_w 559 def
+/d_output_h 755 def
+/cols 1 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+18 36 translate
+/pagenum 1 def
+/fname (rapport.txt) def
+/fdir (.) def
+/ftail (rapport.txt) def
+% User defined strings:
+/fmodstr (Sun Jan 08 17:28:31 2017) def
+/pagenumstr (1) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+5 731 M
+(Processus en arri\303\250re plan et commande cd:) s
+5 720 M
+(     ) s
+5 709 M
+(        arriere-plan:) s
+5 698 M
+(        Pour cela , je verifie avec la commande strcmp\(\) si le dernier mot entrer est un '&) s
+5 687 M
+(' , si c'est bien le cas je retire le "&" avant de  passer au processus enfant et je fait c) s
+5 676 M
+(ontinue la boucle du for initial pour eviter d'attendre la fin du processus enfant et donc ) s
+5 665 M
+(avoir directement la main.) s
+5 643 M
+(        commande cd:) s
+5 632 M
+(        je verifie avec la commande strcmp\(\) si le premier mot entrer est "cd" , si c'est b) s
+5 621 M
+(ien le cas j'utilise donc la fonction chdir\(\) sur le mot entrer suivant le cd pour y accede) s
+5 610 M
+(r\(on continue la boucle du for initial une fois cette action achever pour eviter qu'il y ai) s
+5 599 M
+(t un fork inutile\).) s
+5 566 M
+(Passage de processus entre background et foreground:) s
+5 544 M
+(        stoper le signal ctrl-z:) s
+5 533 M
+(        Pour cela , j'utilise la fonction signal\(\), elle permet de detecter un signal ,igno) s
+5 522 M
+(rer son execution par default et executer une fonction qu'on peut lui passer en parametre ,) s
+5 511 M
+( ou un autre signal a la place , dans ce cas precis le signal pour reconnaitre controle-Z e) s
+5 500 M
+(st ) s
+5 489 M
+(SIGTSTP et je l'ignore pour pas qu'il arrete mon minishelle avec SIG_IGN.) s
+5 478 M
+(        cela va ignorer tous les controle z , le probleme c'est que du coup je n'ai pas tro) s
+5 467 M
+(uver comment arreter des processus dans mon minishelle \(les mettre en pause\).) s
+5 434 M
+(        fg:) s
+5 423 M
+(        j'utilise la fonction strcmp pour reconnaitre si le premier mot est fg , ensuite j') s
+5 412 M
+(utilise la fonction atoi\(\) qui va convertir le pid donner en argument en int :il est en str) s
+5 401 M
+(ing dans le tableau mot \( si il n'y a pas de pid donner en argument je passe donc au premie) s
+5 390 M
+(r plan le dernier processus passer en arriere plan\).) s
+5 379 M
+(je poursuis ensuite l'execution de ce processus normalement.) s
+5 357 M
+(        jobs:) s
+5 346 M
+(        j'utilise la fonction strcmp pour reconnaitre si le premier mot passer en commande ) s
+5 335 M
+(est jobs , si c'est le cas je vais parcourir un tableau de int contenant les pid de mes pro) s
+5 324 M
+(cessus qui fonctionne de la maniere suivante :) s
+5 313 M
+(        - losrque on arrive au fork , j'appele ma fonction trouver_libre qui va renvoyer l') s
+5 302 M
+(emplacement de la premier case libre de mon tableau de pid) s
+5 291 M
+(        -je vais ensuite ecrire le pid de mon processus dans ce tableau pour l'enregistrer) s
+5 280 M
+(        -lors de l'appele de la comande jobs , je vais donc parcourir ce meme tableau et ve) s
+5 269 M
+(rifier a chaque fois si la case i correspond a un pid ou non , si c'est le cas je l'affiche) s
+5 258 M
+( car cela signifie que c'est un processus qui n'est pas fini) s
+5 247 M
+(        -pour eviter que des pid de processus deja fini ce retrouve dans le tableau je les ) s
+5 236 M
+(efface lorsque le processus enfant leur etant dedier ce termine \( je sais qu'il sont termin) s
+5 225 M
+(er grace a la fonction waitpid\(\) , qui renvoie le pid du processus si celui si est bien ter) s
+5 214 M
+(miner.) s
+5 181 M
+(Redirections d'entr\303\251es-sorties:) s
+5 159 M
+(        j'ai proceder de la maniere suivante :) s
+5 137 M
+(                -je parcour le tableau mot pour savoir si j'ai une redirection de sortie ">) s
+5 126 M
+(" ou d'entrer "<" dans les arguments passer en commande) s
+5 115 M
+(                -une fois cela fait j'efface du tableau mot le ">" ou "<" ainsi que l'argum) s
+5 104 M
+(ent qui le suit qui correspond donc au nom de la destination de la redirection \( ou de l'em) s
+5 93 M
+(placement de l'entrer\) ) s
+5 82 M
+(                -j'ouvre la detination de sortie ou l'entree avec open \( en mode O_RDONLY p) s
+5 71 M
+(our l'entrer c'est a dire l'ecture et O_CREAT|O_WRONLY,0777 pour la sortie c'est a dire ecr) s
+5 60 M
+(iture , lui permettre de cree le fichier si celui ci n'existe pas et d'y avoir tous les dro) s
+5 49 M
+(it.) s
+5 38 M
+(                -je decrement nbmot \( qui correspond a nombre de mot dans le tableau mot\) d) s
+5 27 M
+(e 2 car je vien d'effacer 2 mot du tableau.) s
+5 16 M
+(                -je change ensuite l'entree/sortie avec dup2\(\) \(0 si redirection d'entrer ,) s
+5 5 M
+( 1 si redirection de sortie\).) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+18 36 translate
+/pagenum 2 def
+/fname (rapport.txt) def
+/fdir (.) def
+/ftail (rapport.txt) def
+% User defined strings:
+/fmodstr (Sun Jan 08 17:28:31 2017) def
+/pagenumstr (2) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+5 742 M
+(                -j'ai ensuite cree une fonction decaler\(\) qui va decaler tous les argument ) s
+5 731 M
+(du tableau mot pour ne pas qu'il y ait des case contenant NULL en plein milieu de mon table) s
+5 720 M
+(au mot suite a l'effacement des 2 case precedente) s
+5 709 M
+(                -je continue a parcourir le tableau mot pour voir si il n'y aurait pas d'au) s
+5 698 M
+(tre redirection d'entrer ou de sortie \( si c'est le cas je repete les meme instruction pour) s
+5 687 M
+( chaque redirection trouver\).) s
+_R
+S
+%%Trailer
+%%Pages: 2
+%%DocumentNeededResources: font Courier-Bold Courier 
+%%EOF
